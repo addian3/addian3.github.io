@@ -3,11 +3,128 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: 'Courier New', monospace;
+      background: #222;
+      color: #0f0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .calculator {
+      border: 2px solid #0f0;
+      padding: 20px;
+      width: 260px;
+    }
+    #display {
+      width: 100%;
+      height: 40px;
+      background: #000;
+      color: #0f0;
+      font-size: 1.2em;
+      text-align: right;
+      padding: 5px;
+      margin-bottom: 10px;
+      border: 1px solid #0f0;
+    }
+    .buttons {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 5px;
+    }
+    button {
+      height: 40px;
+      background: #000;
+      color: #0f0;
+      border: 1px solid #0f0;
+      font-size: 1em;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #0f0;
+      color: #000;
+    }
+    button.span-two {
+      grid-column: span 4;
+    }
+  </style>
   <title>Document</title>
 </head>
 <body>
-    <h1>Vigtig Besked</h1>
-    <p>Godmorgen</p>
-    <script>
-        console.log("godmorgen");
-    </script>
+  <div class="calculator">
+    <input type="text" id="display" readonly>
+    <div class="buttons">
+      <button>7</button><button>8</button><button>9</button><button>/</button>
+      <button>4</button><button>5</button><button>6</button><button>*</button>
+      <button>1</button><button>2</button><button>3</button><button>-</button>
+      <button>0</button><button>.</button><button>=</button><button>+</button>
+      <button class="span-two">C</button>
+    </div>
+  </div>
+
+  <script>
+  (function() {
+    const display = document.getElementById('display');
+    const buttons = Array.from(document.querySelectorAll('.buttons button'));
+    buttons.forEach(button => {
+      button.addEventListener('click', () => {
+        const val = button.textContent;
+        if (val === 'C') {
+          display.value = '';
+        } else if (val === '=') {
+          try {
+            const result = eval(display.value);
+            display.value = numberToWords(result);
+          } catch (e) {
+            display.value = 'Error';
+          }
+        } else {
+          display.value += val;
+        }
+      });
+    });
+
+    function numberToWords(num) {
+      const ones = ['Zero','One','Two','Three','Four','Five','Six','Seven','Eight','Nine'];
+      const teens = ['Ten','Eleven','Twelve','Thirteen','Fourteen','Fifteen','Sixteen','Seventeen','Eighteen','Nineteen'];
+      const tens = ['','','Twenty','Thirty','Forty','Fifty','Sixty','Seventy','Eighty','Ninety'];
+      if (isNaN(num)) return 'Not a number';
+      if (!Number.isInteger(num)) {
+        const parts = num.toString().split('.');
+        const intPart = parseInt(parts[0]);
+        const decPart = parts[1];
+        const decWords = decPart.split('').map(d => ones[parseInt(d)]).join(' ');
+        return numberToWords(intPart) + ' Point ' + decWords;
+      }
+      if (num === 0) return 'Zero';
+      function chunkToWords(n) {
+        let str = '';
+        if (n >= 100) {
+          str += ones[Math.floor(n/100)] + ' Hundred ';
+          n %= 100;
+        }
+        if (n >= 10 && n < 20) {
+          str += teens[n - 10] + ' ';
+        } else if (n >= 20) {
+          str += tens[Math.floor(n/10)] + ' ';
+          if (n % 10) str += ones[n % 10] + ' ';
+        } else if (n > 0 && n < 10) {
+          str += ones[n] + ' ';
+        }
+        return str.trim();
+      }
+      let absNum = Math.abs(num);
+      let word = '';
+      if (absNum >= 1000) {
+        word += chunkToWords(Math.floor(absNum/1000)) + ' Thousand ';
+        absNum %= 1000;
+      }
+      word += chunkToWords(absNum);
+      word = word.trim();
+      if (num < 0) word = 'Minus ' + word;
+      return word;
+    }
+  })();
+  </script>
